@@ -9,12 +9,6 @@
     project_name: "hello-world"
 
   tasks:
-    - name: Ensure required Python packages are installed
-      pip:
-        name:
-          - openshift
-        become: false  
-        state: present
 
     - name: Create a new project/namespace
       k8s:
