@@ -1,0 +1,12 @@
+---
+- name: create a new-project 
+  hosts: localhost
+  gather_facts: false
+  tasks: 
+    - name: Create new project 
+      k8s: 
+        api_version: project.openshift.io/v1
+        kind: Project
+        name: "{{project_name}}"
+      vars: 
+        project_name: "new-project-01"
