@@ -13,7 +13,7 @@
       pip:
         name:
           - openshift
-          - kubernetes
+        become: false  
         state: present
 
     - name: Create a new project/namespace
