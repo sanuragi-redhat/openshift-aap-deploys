@@ -1,0 +1,38 @@
+---
+- name: Delete a VM on OpenShift Virtualization
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
+    namespace: "rhce-consulting-vms"
+    vm_name: "rhel9-vm"
+
+  tasks:
+    - name: Delete VirtualMachine
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        api_version: kubevirt.io/v1
+        kind: VirtualMachine
+        namespace: "{{ namespace }}"
+        name: "{{ vm_name }}"
+        state: absent
+
+    - name: Confirm VM deletion
+      k8s_info:
+        kubeconfig: "{{ kubeconfig_path }}"
+        api_version: kubevirt.io/v1
+        kind: VirtualMachine
+        namespace: "{{ namespace }}"
+        name: "{{ vm_name }}"
+      register: vm_info
+      failed_when: vm_info.resources | length > 0
+      retries: 5
+      delay: 4
+      until: vm_info.resources | length == 0
+
+    - name: Show deletion success message
+      debug:
+        msg: "Virtual Machine {{ vm_name }} has been successfully deleted."
+

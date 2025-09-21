@@ -1,0 +1,47 @@
+---
+- name: Configure OVN-Kubernetes secondary network
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Create NodeNetworkConfigurationPolicy mapping
+      k8s:
+        state: present
+        definition:
+          apiVersion: nmstate.io/v1
+          kind: NodeNetworkConfigurationPolicy
+          metadata:
+            name: br-ex
+          spec:
+            desiredState:
+              ovn:
+                bridge-mappings:
+                  - bridge: br-ex
+                    localnet: localnet-network
+                    state: present
+
+    - name: Create NetworkAttachmentDefinition localnet-nad
+      k8s:
+        state: present
+        definition:
+          apiVersion: k8s.cni.cncf.io/v1
+          kind: NetworkAttachmentDefinition
+          metadata:
+            name: localnet-nad
+            namespace: default
+          spec:
+            config: |-
+              {
+                "cniVersion": "0.4.0",
+                "name": "localnet-network",
+                "type": "ovn-k8s-cni-overlay",
+                "topology": "localnet",
+                "netAttachDefName": "default/localnet-nad",
+                "mtu": 1400,
+                "parameters": {
+                  "bridge": "br-ex",
+                  "netType": "localnet"
+                }
+              }
+

@@ -1,0 +1,45 @@
+---
+- name: Create namespaces in AAP Hub
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    hub_url: "https://aap-hub-aap.apps.ocp2.redhat-workshop.in/api/galaxy/"
+    api_key: "675e433865c981106ddc36807febac48554f9d54"
+    namespaces:
+      - kubernetes
+      - kubevirt
+      - openshift
+      - networking
+      - storage
+      - monitoring
+      - security
+
+  tasks:
+    - name: Ensure required Python packages are installed
+      pip:
+        name:
+          - requests
+          - ansible-pylibssh
+        state: present
+
+    - name: Create namespaces in Automation Hub
+      uri:
+        url: "{{ hub_url }}v3/namespaces/"
+        method: POST
+        headers:
+          Authorization: "Token {{ api_key }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          name: "{{ item }}"
+        status_code: [201, 400, 409]   # Accept 409 as OK
+      loop: "{{ namespaces }}"
+      register: namespace_result
+      failed_when: false                # Prevent failure if 409 occurs
+
+    - name: Show namespace creation result
+      debug:
+        msg: "{{ namespace_result.results | map(attribute='json') | list }}"
+

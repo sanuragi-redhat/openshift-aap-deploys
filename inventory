@@ -1,0 +1,2 @@
+[masters]
+master2.ocp2.redhat-workshop.in ansible_user=core  ansible_ssh_common_args='-o StrictHostKeyChecking=no'

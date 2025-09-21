@@ -1,0 +1,32 @@
+---
+- name: Delete OpenShift Project hello-world
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
+    project_name: "hello-world"
+
+  tasks:
+    - name: Ensure required Python packages are installed
+      pip:
+        name:
+          - openshift
+          - kubernetes
+        state: present
+
+    - name: Delete the project/namespace
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: absent
+        kind: Namespace
+        name: "{{ project_name }}"
+
+    - name: Verify project deletion
+      k8s_info:
+        kubeconfig: "{{ kubeconfig_path }}"
+        kind: Namespace
+      register: ns_info
+
+

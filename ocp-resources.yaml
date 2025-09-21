@@ -1,0 +1,26 @@
+---
+- name: Connect to OpenShift and manage resources
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubeconfig_path: "/root/ocp4/auth/kubeconfig"  
+
+  tasks:
+    - name: Ensure required Python packages are installed
+      pip:
+        name:
+          - openshift
+          - kubernetes
+        state: present
+
+    - name: Verify connection to OpenShift by listing namespaces
+      k8s_info:
+        kubeconfig: "{{ kubeconfig_path }}"
+        kind: Namespace
+      register: ns_info
+
+    - name: Show namespaces
+      debug:
+        msg: "{{ ns_info.resources | map(attribute='metadata') | map(attribute='name') | list }}"

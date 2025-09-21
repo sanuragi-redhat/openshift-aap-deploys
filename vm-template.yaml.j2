@@ -1,0 +1,50 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: "{{ vm_name }}"
+  namespace: "{{ namespace }}"
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: "{{ vm_name }}"
+    spec:
+      domain:
+        cpu:
+          cores: {{ cpu_cores }}
+        resources:
+          requests:
+            memory: "{{ memory }}"
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+      networks:
+        - name: default
+          pod: {}
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: "{{ container_image }}"
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              password: redhat
+              chpasswd: { expire: False }
+              ssh_pwauth: True
+              users:
+                - name: rhel
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  groups: wheel
+                  shell: /bin/bash
+                  lock_passwd: false
+

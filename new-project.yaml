@@ -1,0 +1,47 @@
+---
+- name: Create OpenShift Project hello-world
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
+    project_name: "hello-world"
+
+  tasks:
+    - name: Ensure required Python packages are installed
+      pip:
+        name:
+          - openshift
+          - kubernetes
+        state: present
+
+    - name: Create a new project/namespace
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ project_name }}"
+
+    - name: Verify the project was created
+      k8s_info:
+        kubeconfig: "{{ kubeconfig_path }}"
+        kind: Namespace
+      register: ns_info
+
+    - name: Show namespaces
+      debug:
+        msg: "{{ ns_info.resources | map(attribute='metadata') | map(attribute='name') | list }}"
+
+    - name: Show only the created namespace
+      command: "oc get namespaces -o jsonpath='{.items[*].metadata.name}'"
+      register: ns_output
+
+    - name: Filter for hello-world namespace
+      debug:
+        msg: "created: {{ ns_output.stdout.split() | select('equalto', 'hello-world') | list }}"
+
+

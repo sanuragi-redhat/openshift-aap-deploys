@@ -1,0 +1,89 @@
+---
+- name: Install OpenShift MTV Operator via OLM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
+    mtv_namespace: "openshift-mtv"
+    mtv_channel: "release-v2.9"
+    mtv_operator_name: "mtv-operator"
+    mtv_source: "redhat-operators"
+    mtv_source_namespace: "openshift-marketplace"
+
+  tasks:
+    - name: Ensure required Python packages are installed
+      pip:
+        name:
+          - openshift
+          - kubernetes
+        state: present
+
+    - name: Create MTV namespace if not present
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        api_version: v1
+        kind: Namespace
+        name: "{{ mtv_namespace }}"
+        state: present
+
+    - name: Create OperatorGroup for MTV
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        definition:
+          apiVersion: operators.coreos.com/v1
+          kind: OperatorGroup
+          metadata:
+            name: mtv-operatorgroup
+            namespace: "{{ mtv_namespace }}"
+          spec:
+            targetNamespaces:
+              - "{{ mtv_namespace }}"
+
+    - name: Create Subscription for MTV Operator
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        definition:
+          apiVersion: operators.coreos.com/v1alpha1
+          kind: Subscription
+          metadata:
+            name: "{{ mtv_operator_name }}"
+            namespace: "{{ mtv_namespace }}"
+          spec:
+            channel: "{{ mtv_channel }}"
+            name: "{{ mtv_operator_name }}"
+            source: "{{ mtv_source }}"
+            sourceNamespace: "{{ mtv_source_namespace }}"
+
+    - name: Wait for MTV Operator CSV to reach Succeeded state
+      vars:
+        retries: 30
+        delay: 20
+      block:
+        - name: Get current CSV for mtv-operator
+          command: >
+            oc get subscription {{ mtv_operator_name }} -n {{ mtv_namespace }} -o jsonpath='{.status.installedCSV}'
+          register: installed_csv
+          until: installed_csv.stdout != ""
+          retries: "{{ retries }}"
+          delay: "{{ delay }}"
+
+        - name: Wait for CSV to be in Succeeded phase
+          command: >
+            oc get csv {{ installed_csv.stdout }} -n {{ mtv_namespace }} -o jsonpath='{.status.phase}'
+          register: csv_phase
+          until: csv_phase.stdout == "Succeeded"
+          retries: "{{ retries }}"
+          delay: "{{ delay }}"
+
+    - name: Create ForkliftController CR
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: forklift.konveyor.io/v1beta1
+          kind: ForkliftController
+          metadata:
+            name: forklift-controller
+            namespace: "{{ mtv_namespace }}"

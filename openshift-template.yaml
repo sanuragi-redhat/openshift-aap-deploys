@@ -1,0 +1,33 @@
+---
+- name: Create VM from OpenShift Template
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
+    namespace: "rhce-consulting-vms"
+    vm_name: "rhel9-vm"
+    memory: "4Gi"
+    cpu_cores: "2"
+    container_image: "registry.redhat.io/rhel9/rhel-guest-image:latest"
+    template_name: "rhel9-stable-template"  # Name of the template deployed in the cluster
+
+  tasks:
+    - name: Process VM Template
+      command: >
+        oc process {{ template_name }}
+        -p VM_NAME={{ vm_name }}
+        -p NAMESPACE={{ namespace }}
+        -p MEMORY={{ memory }}
+        -p CPU_CORES={{ cpu_cores }}
+        -p CONTAINER_IMAGE={{ container_image }}
+        --kubeconfig={{ kubeconfig_path }}
+      register: processed_vm
+
+    - name: Apply the VM manifest
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition: "{{ processed_vm.stdout | from_yaml }}"
+

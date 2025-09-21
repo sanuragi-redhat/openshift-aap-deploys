@@ -1,0 +1,32 @@
+---
+- name: View only the created OpenShift namespace
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
+    project_name: "hello-world"
+
+  tasks:
+    - name: Ensure required Python packages are installed
+      pip:
+        name:
+          - openshift
+          - kubernetes
+        state: present
+
+    - name: Get all namespaces
+      k8s_info:
+        kubeconfig: "{{ kubeconfig_path }}"
+        kind: Namespace
+      register: ns_info
+
+    - name: Show only the created namespace "{{ project_name }}"
+      debug:
+        msg: >-
+          {{
+            ns_info.resources
+            | selectattr('metadata.name', 'equalto', project_name)
+            | list
+          }}

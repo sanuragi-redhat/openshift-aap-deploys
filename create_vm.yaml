@@ -1,0 +1,68 @@
+---
+- name: Create RHEL 9 VM on OpenShift Virtualization
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
+    namespace: "rhce-consulting-vms"
+    vm_name: "rhel9-1"
+
+  tasks:
+    - name: Ensure required Python packages are installed
+      pip:
+        name:
+          - openshift
+          - kubernetes
+        state: present
+
+    - name: Create a VirtualMachine custom resource
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: kubevirt.io/v1
+          kind: VirtualMachine
+          metadata:
+            name: "{{ vm_name }}"
+            namespace: "{{ namespace }}"
+
+          spec:
+            running: true
+            template:
+              metadata:
+                labels:
+                  kubevirt.io/domain: "{{ vm_name }}"
+              spec:
+                domain:
+                  devices:
+                    disks:
+                      - name: containerdisk
+                        disk:
+                          bus: virtio
+                      - name: cloudinitdisk
+                        disk:
+                          bus: virtio
+                    interfaces:
+                      - name: localnet-nad
+                        bridge: {}
+                  resources:
+                    requests:
+                      memory: 4Gi
+                networks:
+                  - multus:
+                      networkName: default/localnet-nad
+                    name: localnet-nad
+                volumes:
+                  - name: containerdisk
+                    containerDisk:
+                      image: registry.redhat.io/rhel9/rhel-guest-image:latest
+                  - cloudInitNoCloud:
+                      userData: |
+              #cloud-config
+                        user: rhel
+                        password: redhat
+                        chpasswd: { expire: False }
+                        ssh_pwauth: True
+                    name: cloudinitdisk

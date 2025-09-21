@@ -1,0 +1,21 @@
+---
+- name: Restart a VM on OpenShift Virtualization
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
+    namespace: "rhce-consulting-vms"
+    vm_name: "rhel9-vm"
+
+  tasks:
+    - name: Delete VirtualMachineInstance to restart VM
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        api_version: kubevirt.io/v1
+        kind: VirtualMachineInstance
+        namespace: "{{ namespace }}"
+        name: "{{ vm_name }}"
+        state: absent
+

@@ -1,0 +1,36 @@
+---
+- name: Get pod status in a namespace
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
+    namespace: "default"  # change as needed
+
+  tasks:
+    - name: Ensure required Python packages are installed
+      pip:
+        name:
+          - openshift
+          - kubernetes
+        state: present
+
+    - name: Get all pods in the namespace
+      k8s_info:
+        kubeconfig: "{{ kubeconfig_path }}"
+        kind: Pod
+        namespace: "{{ namespace }}"
+      register: pod_info
+
+    - name: Show pod names and statuses
+      debug:
+        msg: >-
+          {{
+            pod_info.resources
+            | map(attribute='metadata.name')
+            | zip(pod_info.resources | map(attribute='status.phase'))
+            | map('join', ': ')
+            | list
+          }}
+
