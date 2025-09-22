@@ -1,0 +1,23 @@
+- name: Deploy Simple Service to OpenShift
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    namespace: rhce-consulting-vms
+
+  tasks:
+
+    - name: Ensure namespace exists
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ namespace }}"
+
+    - name: Deploy Deployment, Service, and Route
+      k8s:
+        state: present
+        src: ./deployment.yaml
+
