@@ -1,0 +1,10 @@
+FROM registry.access.redhat.com/ubi8/ubi:latest
+LABEL maintainer="Darwikdev11"
+LABEL email="darwikdev@gmail.com"
+LABEL version="1.0"
+LABEL description="A simple hello world application"
+LABEL usage="docker run -d -p 8080:8080 ubi:8"
+run dnf install -y httpd
+COPY index.html /var/www/html/index.html
+EXPOSE 8080
+CMD ["/usr/sbin/httpd","-D","FOREGROUND"]
