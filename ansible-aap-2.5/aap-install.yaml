@@ -1,0 +1,60 @@
+---
+- name: Install Ansible Automation Platform Operator on OpenShift
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  vars:
+    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
+    aap_namespace: "ansible-automation-platform"
+    operator_channel: "stable-2.5"
+    operator_name: "ansible-automation-platform-operator"
+    operator_version: "2.5.0+0.1755835086"
+
+  tasks:
+
+    - name: Ensure required Python packages are installed
+      pip:
+        name:
+          - openshift
+          - kubernetes
+        state: present
+
+    - name: Create AAP namespace
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        api_version: v1
+        kind: Namespace
+        name: "{{ aap_namespace }}"
+        state: present
+
+    - name: Create OperatorGroup
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: operators.coreos.com/v1
+          kind: OperatorGroup
+          metadata:
+            name: aap-operatorgroup
+            namespace: "{{ aap_namespace }}"
+          spec:
+            targetNamespaces:
+              - "{{ aap_namespace }}"
+
+    - name: Subscribe to the AAP Operator
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: operators.coreos.com/v1alpha1
+          kind: Subscription
+          metadata:
+            name: aap-subscription
+            namespace: "{{ aap_namespace }}"
+          spec:
+            channel: "{{ operator_channel }}"
+            name: "{{ operator_name }}"
+            source: redhat-operators
+            sourceNamespace: openshift-marketplace
+            installPlanApproval: Automatic

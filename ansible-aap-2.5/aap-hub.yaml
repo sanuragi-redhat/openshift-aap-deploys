@@ -1,0 +1,47 @@
+apiVersion: automationhub.ansible.com/v1beta1
+kind: AutomationHub
+metadata:
+  name: aap-hub
+  namespace: aap
+spec:
+  nginx_proxy_send_timeout: 15s
+  gunicorn_content_workers: 2
+  gunicorn_api_workers: 2
+  route_tls_termination_mechanism: Edge
+  ingress_type: Route
+  loadbalancer_port: 80
+  no_log: true
+  file_storage_size: 100Gi
+  image_pull_policy: IfNotPresent
+  nginx_proxy_read_timeout: 15s
+  idle_deployment: false
+  gunicorn_timeout: 10
+  nginx_client_max_body_size: 10m
+  nginx_proxy_connect_timeout: 15s
+  public_base_url: 'https://aap-aap.apps.ocp2.redhat-workshop.in'
+  haproxy_timeout: 180s
+  file_storage_access_mode: ReadWriteMany
+  pulp_settings:
+    ANSIBLE_BASE_JWT_KEY: 'http://aap'
+    ANSIBLE_CONTENT_HOSTNAME: 'https://aap-aap.apps.ocp2.redhat-workshop.in'
+    SERVICE_BACKED_SSO_AUTH_CODE_REDIRECT_URL: 'https://aap-aap.apps.ocp2.redhat-workshop.in'
+    ANSIBLE_BASE_ROLES_REQUIRE_VIEW: false
+    TOKEN_SERVER: 'https://aap-aap.apps.ocp2.redhat-workshop.in/token/'
+    ALLOW_LOCAL_RESOURCE_MANAGEMENT: false
+    content_origin: 'https://aap-aap.apps.ocp2.redhat-workshop.in'
+    GALAXY_AUTHENTICATION_CLASSES:
+      - galaxy_ng.app.auth.session.SessionAuthentication
+      - ansible_base.jwt_consumer.hub.auth.HubJWTAuth
+      - rest_framework.authentication.TokenAuthentication
+      - rest_framework.authentication.BasicAuthentication
+    RESOURCE_SERVER:
+      SECRET_KEY: JtrqXIMCEnFe70xhNNTKVD43FnpUVLCC-ZcTS57GaO1eCq7QWy7ESr4F1WX26s0ERI2VaThb45nN63W-MRX1jw
+      URL: 'http://aap'
+    RESOURCE_SERVER__VALIDATE_HTTPS: false
+    ENABLE_SERVICE_BACKED_SSO: false
+    GALAXY_FEATURE_FLAGS__external_authentication: true
+    ANSIBLE_BASE_JWT_REDIRECT_TYPE: hub
+    ANSIBLE_API_HOSTNAME: 'https://aap-aap.apps.ocp2.redhat-workshop.in'
+  force_drop_db: false
+  loadbalancer_protocol: http
+  postgres_configuration_secret: aap-hub-postgres-configuration

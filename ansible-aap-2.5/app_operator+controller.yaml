@@ -1,0 +1,140 @@
+---
+- name: Install Ansible Automation Platform 2.5 + AutomationController via Operator
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  vars:
+    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
+    aap_namespace: "ansible-automation-platform"
+    operator_name: "ansible-automation-platform-operator"
+    operator_channel: "stable-2.5"
+    operator_version: "2.5.0+0.1755835086"
+    controller_instance_name: "aap-controller"
+    route_host: "aap.apps.ocp2.redhat-workshop.in"  
+    postgres_storage_size: "50Gi"
+    postgres_storage_class: "nfs-storage      
+    controller_replicas: 1
+    task_cpu_requests: "500m"
+    task_memory_requests: "2Gi"
+    task_cpu_limits: "500m"
+    task_memory_limits: "2Gi"
+    web_cpu_requests: "500m"
+    web_memory_requests: "2Gi"
+    web_cpu_limits: "1"
+    web_memory_limits: "2Gi"
+    ee_cpu_requests: "500m"
+    ee_memory_requests: "1Gi"
+    ee_cpu_limits: "500m"
+    ee_memory_limits: "1Gi"
+
+  tasks:
+
+    - name: Ensure required Python packages are present
+      pip:
+        name:
+          - openshift
+          - kubernetes
+        state: present
+
+    - name: Create namespace for AAP
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ aap_namespace }}"
+
+    - name: Create OperatorGroup in the namespace
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: operators.coreos.com/v1
+          kind: OperatorGroup
+          metadata:
+            name: aap-operatorgroup
+            namespace: "{{ aap_namespace }}"
+          spec:
+            targetNamespaces:
+              - "{{ aap_namespace }}"
+
+    - name: Create Subscription for the AAP Operator
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: operators.coreos.com/v1alpha1
+          kind: Subscription
+          metadata:
+            name: aap-operator-subscription
+            namespace: "{{ aap_namespace }}"
+          spec:
+            name: "{{ operator_name }}"
+            channel: "{{ operator_channel }}"
+            source: redhat-operators
+            sourceNamespace: openshift-marketplace
+            installPlanApproval: Automatic
+
+    - name: Wait for Operator CSV to be in Succeeded state
+      # This ensures the operator is ready before creating a controller instance
+      k8s_facts:
+        kubeconfig: "{{ kubeconfig_path }}"
+        kind: ClusterServiceVersion
+        namespace: "{{ aap_namespace }}"
+      register: csvs
+
+    - name: Wait until CSV is ready
+      # Simple loop to wait for CSV status
+      block:
+        - name: Check CSV readiness
+          k8s_facts:
+            kubeconfig: "{{ kubeconfig_path }}"
+            kind: ClusterServiceVersion
+            namespace: "{{ aap_namespace }}"
+          register: csvs2
+          until: >
+            (csvs2.resources | selectattr('status.phase','equalto','Succeeded') | list) | length > 0
+          retries: 10
+          delay: 30
+
+    - name: Create AutomationController instance
+      k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: automationcontroller.ansible.com/v1beta1
+          kind: AutomationController
+          metadata:
+            name: "{{ controller_instance_name }}"
+            namespace: "{{ aap_namespace }}"
+          spec:
+            replicas: "{{ controller_replicas }}"
+            route_host: "{{ route_host }}"
+            task_resource_requirements:
+              requests:
+                cpu: "{{ task_cpu_requests }}"
+                memory: "{{ task_memory_requests }}"
+              limits:
+                cpu: "{{ task_cpu_limits }}"
+                memory: "{{ task_memory_limits }}"
+            web_resource_requirements:
+              requests:
+                cpu: "{{ web_cpu_requests }}"
+                memory: "{{ web_memory_requests }}"
+              limits:
+                cpu: "{{ web_cpu_limits }}"
+                memory: "{{ web_memory_limits }}"
+            ee_resource_requirements:
+              requests:
+                cpu: "{{ ee_cpu_requests }}"
+                memory: "{{ ee_memory_requests }}"
+              limits:
+                cpu: "{{ ee_cpu_limits }}"
+                memory: "{{ ee_memory_limits }}"
+            postgres_storage:
+              size: "{{ postgres_storage_size }}"
+              storageClass: "{{ postgres_storage_class }}"
+            postgres_pg_params: {}    

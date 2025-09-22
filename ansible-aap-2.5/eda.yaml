@@ -1,0 +1,47 @@
+apiVersion: eda.ansible.com/v1alpha1
+kind: EDA
+metadata:
+  name: aap-eda
+  namespace: aap
+  labels:
+    app.kubernetes.io/managed-by: eda-operator
+    app.kubernetes.io/name: aap-eda
+    app.kubernetes.io/operator-version: '2.5'
+    app.kubernetes.io/part-of: aap-eda
+spec:
+  ingress_type: Route
+  event_stream:
+    gunicorn_workers: 2
+    prefix: /eda-event-streams
+    replicas: 1
+  no_log: true
+  ui_disabled: true
+  image_pull_policy: IfNotPresent
+  idle_deployment: false
+  extra_settings:
+    - setting: EDA_ANSIBLE_BASE_JWT_KEY
+      value: 'http://aap'
+    - setting: EDA_ANSIBLE_BASE_JWT_REDIRECT_TYPE
+      value: eda
+    - setting: EDA_ALLOW_LOCAL_RESOURCE_MANAGEMENT
+      value: '@bool False'
+    - setting: ENABLE_SERVICE_BACKED_SSO
+      value: '@bool false'
+    - setting: EDA_RESOURCE_SERVER__URL
+      value: 'http://aap'
+    - setting: EDA_RESOURCE_SERVER__SECRET_KEY
+      value: 5pEdoieN5kIFEXzdOypcDW76IA-Rabdifu31MKoj6prH2Uq0IzKeMggXMXBnTn1wqgyIM1etBkCQ1-BW-3gSZQ
+    - setting: EDA_RESOURCE_SERVER__VALIDATE_HTTPS
+      value: 'False'
+    - setting: EDA_ANSIBLE_BASE_MANAGED_ROLE_REGISTRY
+      value: '@json {\"platform_auditor\": {\"name\": \"Platform Auditor\", \"shortname\": \"sys_auditor\"}}'
+  public_base_url: 'https://aap-aap.apps.ocp2.redhat-workshop.in'
+  database:
+    database_secret: aap-eda-postgres-configuration
+    postgres_data_volume_init: false
+  redis:
+    redis_secret: aap-eda-redis-configuration
+    replicas: 1
+  automation_server_url: 'http://aap-controller-service'
+  admin_user: admin
+

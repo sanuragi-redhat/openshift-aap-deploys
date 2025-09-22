@@ -1,0 +1,40 @@
+apiVersion: aap.ansible.com/v1alpha1
+kind: AnsibleAutomationPlatform
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: aap-operator
+    app.kubernetes.io/name: aap
+    app.kubernetes.io/operator-version: '2.5'
+    app.kubernetes.io/part-of: aap
+  name: aap
+  namespace: aap
+spec:
+  api:
+    log_level: INFO
+    replicas: 1
+  controller:
+    log_level: INFO
+    replicas: 1
+    resource_requirements:
+      limits:
+        cpu: '1'
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+  database:
+    idle_disabled: false
+    postgres_data_volume_init: false
+  hub:
+    log_level: INFO
+    replicas: 1
+    resource_requirements:
+      limits:
+        cpu: '1'
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+  no_log: true
+  redis_mode: standalone
+  route_tls_termination_mechanism: Edge

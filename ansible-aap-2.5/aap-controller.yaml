@@ -1,0 +1,81 @@
+apiVersion: automationcontroller.ansible.com/v1beta1
+kind: AutomationController
+metadata:
+  name: aap-controller
+  namespace: aap
+  labels:
+    app.kubernetes.io/component: automationcontroller
+    app.kubernetes.io/managed-by: automationcontroller-operator
+    app.kubernetes.io/operator-version: '2.5'
+    app.kubernetes.io/part-of: aap-controller
+spec:
+  web_readiness_timeout: 1
+  postgres_keepalives_count: 5
+  web_readiness_period: 0
+  postgres_keepalives_idle: 5
+  task_liveness_period: 0
+  metrics_utility_cronjob_report_schedule: '@monthly'
+  create_preload_data: true
+  route_tls_termination_mechanism: Edge
+  garbage_collect_secrets: false
+  ingress_type: Route
+  loadbalancer_port: 80
+  web_liveness_failure_threshold: 3
+  task_liveness_initial_delay: 5
+  no_log: true
+  task_readiness_failure_threshold: 3
+  image_pull_policy: IfNotPresent
+  web_readiness_initial_delay: 20
+  metrics_utility_console_enabled: false
+  loadbalancer_ip: ''
+  web_manage_replicas: true
+  projects_storage_size: 8Gi
+  api_urlpattern_prefix: controller
+  auto_upgrade: true
+  task_privileged: false
+  idle_deployment: false
+  task_readiness_period: 0
+  web_liveness_timeout: 1
+  postgres_keepalives: true
+  task_readiness_timeout: 1
+  web_liveness_period: 0
+  extra_settings:
+    - setting: ANSIBLE_BASE_JWT_KEY
+      value: '"http://aap"'
+    - setting: ANSIBLE_BASE_JWT_REDIRECT_TYPE
+      value: '"awx"'
+    - setting: ALLOW_LOCAL_RESOURCE_MANAGEMENT
+      value: 'False'
+    - setting: ENABLE_SERVICE_BACKED_SSO
+      value: 'False'
+    - setting: SERVICE_BACKED_SSO_AUTH_CODE_REDIRECT_URL
+      value: '"https://aap-aap.apps.ocp2.redhat-workshop.in"'
+    - setting: RESOURCE_SERVER
+      value:
+        SECRET_KEY: CTYv0xBQFqTi-VgcuxL_nMhYBzzeVixVhLfJHuCupWJGSlhFya7YmzHfMxyUaPEcc2b88h4xUpriQ5r-sl3QjQ
+        URL: 'http://aap'
+        VALIDATE_HTTPS: 'False'
+    - setting: ANSIBLE_BASE_MANAGED_ROLE_REGISTRY
+      value: '{"platform_auditor": {"name": "Platform Auditor", "shortname": "sys_auditor"}}'
+    - setting: OPTIONAL_UI_URL_PREFIX
+      value: '"execution"'
+  metrics_utility_enabled: false
+  postgres_keepalives_interval: 5
+  ipv6_disabled: false
+  task_liveness_failure_threshold: 3
+  projects_storage_access_mode: ReadWriteMany
+  metrics_utility_pvc_claim_size: 5Gi
+  loadbalancer_class: ''
+  set_self_labels: true
+  web_readiness_failure_threshold: 3
+  web_liveness_initial_delay: 5
+  public_base_url: 'https://aap-aap.apps.ocp2.redhat-workshop.in'
+  task_readiness_initial_delay: 20
+  projects_persistence: false
+  task_manage_replicas: true
+  replicas: 1
+  admin_user: admin
+  loadbalancer_protocol: http
+  metrics_utility_cronjob_gather_schedule: '@hourly'
+  task_liveness_timeout: 1
+  postgres_configuration_secret: aap-controller-postgres-configuration
