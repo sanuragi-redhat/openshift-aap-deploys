@@ -66,7 +66,7 @@
                             groups: users
                             shell: /bin/bash
                             lock_passwd: false
-                            passwd: "$6$aT7x4k0IW1rhiAqP$dmyPzkpNSd47NYpcRk0dAz1w2QM.Z9a4ukDS1L7HHtbNGWQYiywnPIt4VFSfztQI2QBCdkLs0Wh5FBMx/VJyh1"
+                            passwd: "encrypted_pass"
                         chpasswd:
                           expire: false
                         ssh_pwauth: true
