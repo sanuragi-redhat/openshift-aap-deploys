@@ -11,9 +11,9 @@
     operator_channel: "stable-2.5"
     operator_version: "2.5.0+0.1755835086"
     controller_instance_name: "aap-controller"
-    route_host: "aap.apps.ocp.example.com"   # change to your cluster's route
+    route_host: "aap.apps.ocp.redhat-workshop.in"   
     postgres_storage_size: "50Gi"
-    postgres_storage_class: "standard"        # change as per your cluster
+    postgres_storage_class: "nfs-storage"        
     controller_replicas: 1
     task_cpu_requests: "500m"
     task_memory_requests: "2Gi"
