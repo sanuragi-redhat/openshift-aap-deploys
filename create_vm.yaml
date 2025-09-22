@@ -68,3 +68,4 @@
                         chpasswd: { expire: False }
                           expire: false 
                         ssh_pwauth: True
+                    name: cloudinitdisk
