@@ -60,8 +60,11 @@
                       image: registry.redhat.io/rhel9/rhel-guest-image:latest
                   - cloudInitNoCloud:
                       userData: |
-                        user: rhel
-                        password: redhat
+                        users: 
+                          - name: rhel
+                            passwd: "$6$aT7x4k0IW1rhiAqP$dmyPzkpNSd47NYpcRk0dAz1w2QM.Z9a4ukDS1L7HHtbNGWQYiywnPIt4VFSfztQI2QBCdkLs0Wh5FBMx/VJyh1"
+                            lock_passwd: false 
+                            shell: /bin/bash 
                         chpasswd: { expire: False }
+                          expire: false 
                         ssh_pwauth: True
-                    name: cloudinitdisk
