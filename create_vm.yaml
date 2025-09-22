@@ -60,7 +60,6 @@
                       image: registry.redhat.io/rhel9/rhel-guest-image:latest
                   - cloudInitNoCloud:
                       userData: |
-              #cloud-config
                         user: rhel
                         password: redhat
                         chpasswd: { expire: False }
