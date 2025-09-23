@@ -79,5 +79,15 @@
               name: sise-svc
               weight: 100
             wildcardPolicy: None
+    - name: Get route information
+      k8s_info:
+        api_version: route.openshift.io/v1
+        kind: Route
+        name: simple-service
+        namespace: "{{ namespace }}"
+      register: route_info
 
+    - name: Show route host in playbook output
+      debug:
+        msg: "Route URL: http://{{ route_info.resources[0].spec.host }}{{ route_info.resources[0].spec.path | default('') }}"
 
