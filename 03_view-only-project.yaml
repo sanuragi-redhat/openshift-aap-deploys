@@ -2,7 +2,7 @@
 - name: Create OpenShift Project hello-world
   hosts: localhost
   connection: local
-  gather_facts: false
+  gather_facts: true
 
   vars:
     kubeconfig_path: "/root/ocp4/auth/kubeconfig"
