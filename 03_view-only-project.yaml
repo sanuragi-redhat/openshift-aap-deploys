@@ -6,7 +6,7 @@
 
   vars:
     kubeconfig_path: "/root/ocp4/auth/kubeconfig"
-    project_name: ""
+    project_name: "uat-infra-tools"
 
   tasks:
     - name: Ensure required Python packages are installed
