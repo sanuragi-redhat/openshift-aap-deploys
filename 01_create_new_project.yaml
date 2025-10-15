@@ -9,4 +9,4 @@
         kind: Project
         name: "{{project_name}}"
       vars: 
-        project_name: "new-project-01"
+        project_name: "hello-world"
