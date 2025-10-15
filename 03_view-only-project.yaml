@@ -10,6 +10,11 @@
 
   tasks:
     - name: Ensure required Python packages are installed
+      ansible.builtin.package:
+        name: python3
+        state: present
+        
+    - name: Ensure required Python packages are installed
       pip:
         name:
           - openshift
