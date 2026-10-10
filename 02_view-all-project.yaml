@@ -1,32 +1,26 @@
 ---
-- name: View only the created OpenShift namespace
+- name: View all OpenShift projects
   hosts: localhost
   connection: local
   gather_facts: false
 
   vars:
     kubeconfig_path: "/root/ocp4/auth/kubeconfig"
-    project_name: "default"
 
   tasks:
     - name: Ensure required Python packages are installed
-      pip:
+      ansible.builtin.pip:
         name:
           - openshift
           - kubernetes
         state: present
 
     - name: Get all namespaces
-      k8s_info:
+      kubernetes.core.k8s_info:
         kubeconfig: "{{ kubeconfig_path }}"
         kind: Namespace
       register: ns_info
 
-    - name: Show only the created namespace "{{ project_name }}"
-      debug:
-        msg: >-
-          {{
-            ns_info.resources
-            | selectattr('metadata.name', 'equalto', project_name)
-            | list
-          }}
+    - name: Display all project names
+      ansible.builtin.debug:
+        msg: "{{ ns_info.resources | map(attribute='metadata.name') | list }}"
