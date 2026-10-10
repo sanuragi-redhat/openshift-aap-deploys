@@ -17,7 +17,7 @@
             desiredState:
               ovn:
                 bridge-mappings:
-                  - localnet: ocpnet-network
+                  - localnet: localnet-network
                     bridge: br-ex
                     state: present
 
@@ -34,7 +34,7 @@
             config: |
               {
                 "cniVersion": "0.3.1",
-                "name": "ocp-network",
+                "name": "localnet-network",
                 "type": "ovn-k8s-cni-overlay",
                 "topology": "localnet",
                 "netAttachDefName": "default/ocp-network"
