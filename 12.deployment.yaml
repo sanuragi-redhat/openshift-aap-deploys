@@ -8,7 +8,19 @@
     namespace_name: "rhce-consulting-vms"
 
   tasks:
-    - name: Create OpenShift Namespace
+    - name: Check if OpenShift Namespace exists
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Namespace
+        name: "{{ namespace_name }}"
+      register: ns_check
+
+    - name: Display namespace existence status
+      ansible.builtin.debug:
+        msg: "namespace exists"
+      when: ns_check.resources | length > 0
+
+    - name: Create OpenShift Namespace if missing
       kubernetes.core.k8s:
         state: present
         definition:
@@ -16,6 +28,9 @@
           kind: Namespace
           metadata:
             name: "{{ namespace_name }}"
+            labels:
+              name: "{{ namespace_name }}"
+      when: ns_check.resources | length == 0
 
     - name: Deploy Kubernetes resources
       kubernetes.core.k8s:
@@ -73,15 +88,3 @@
                 kind: Service
                 name: sise-svc
                 weight: 100
-
-    - name: Get Route information
-      kubernetes.core.k8s_info:
-        api_version: route.openshift.io/v1
-        kind: Route
-        name: simple-service
-        namespace: "{{ namespace_name }}"
-      register: route_info
-
-    - name: Display Application Route URL
-      ansible.builtin.debug:
-        msg: "Application available at: http://{{ route_info.resources[0].spec.host }}{{ route_info.resources[0].spec.path }}"
