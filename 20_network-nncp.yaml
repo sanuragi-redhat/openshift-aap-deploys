@@ -17,8 +17,8 @@
             desiredState:
               ovn:
                 bridge-mappings:
-                  - bridge: br-ex
-                    localnet: localnet-network
+                  - localnet: ocpnet-network
+                    bridge: br-ex
                     state: present
 
     - name: Create NetworkAttachmentDefinition localnet-nad
@@ -31,17 +31,12 @@
             name: localnet-nad
             namespace: default
           spec:
-            config: |-
+            config: |
               {
-                "cniVersion": "0.4.0",
-                "name": "localnet-network",
+                "cniVersion": "0.3.1",
+                "name": "ocp-network",
                 "type": "ovn-k8s-cni-overlay",
                 "topology": "localnet",
-                "netAttachDefName": "default/localnet-nad",
-                "mtu": 1400,
-                "parameters": {
-                  "bridge": "br-ex",
-                  "netType": "localnet"
-                }
+                "netAttachDefName": "default/ocp-network"
               }
-
+          
