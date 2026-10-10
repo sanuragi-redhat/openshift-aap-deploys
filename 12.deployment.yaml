@@ -15,7 +15,11 @@
         name: "{{ namespace_name }}"
       register: ns_check
 
-    - name: Display namespace existence status
+    - name: Output - Check Namespace Result
+      ansible.builtin.debug:
+        var: ns_check.resources
+
+    - name: Output - Display namespace status
       ansible.builtin.debug:
         msg: "namespace exists"
       when: ns_check.resources | length > 0
@@ -30,6 +34,12 @@
             name: "{{ namespace_name }}"
             labels:
               name: "{{ namespace_name }}"
+      when: ns_check.resources | length == 0
+      register: ns_create_result
+
+    - name: Output - Namespace Creation Result
+      ansible.builtin.debug:
+        var: ns_create_result
       when: ns_check.resources | length == 0
 
     - name: Deploy Kubernetes resources
@@ -88,3 +98,8 @@
                 kind: Service
                 name: sise-svc
                 weight: 100
+      register: deploy_result
+
+    - name: Output - Deployment Resources Result
+      ansible.builtin.debug:
+        var: deploy_result.result
