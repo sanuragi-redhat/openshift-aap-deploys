@@ -6,7 +6,7 @@
 
   vars:
     kubeconfig_path: "/root/ocp4/auth/kubeconfig"
-    project_name: "hello-world"
+    project_name: "default"
 
   tasks:
     - name: Ensure required Python packages are installed
