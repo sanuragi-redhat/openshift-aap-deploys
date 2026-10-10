@@ -5,7 +5,7 @@
   gather_facts: false
 
   vars:
-    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
+    project_name: "default"
 
   tasks:
     - name: Ensure required Python packages are installed
@@ -17,10 +17,9 @@
 
     - name: Get all namespaces
       kubernetes.core.k8s_info:
-        kubeconfig: "{{ kubeconfig_path }}"
         kind: Namespace
       register: ns_info
 
-    - name: Display all project names
+    - name: Display project names
       ansible.builtin.debug:
         msg: "{{ ns_info.resources | map(attribute='metadata.name') | list }}"
