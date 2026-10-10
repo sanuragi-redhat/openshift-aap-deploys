@@ -31,3 +31,59 @@
         state: present
         definition: "{{ processed_vm.stdout | from_yaml }}"
 
+---
+- name: Create VM from OpenShift Template
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    namespace: "rhce-consulting-vms"
+    vm_name: "rhel9-vm"
+    memory: "4Gi"
+    cpu_cores: "2"
+    container_image: "registry.redhat.io/rhel9/rhel-guest-image:latest"
+    template_name: "rhel9-stable-template"
+
+  tasks:
+    - name: Fetch and process VM template
+      kubernetes.core.k8s_info:
+        api_version: template.openshift.io/v1
+        kind: Template
+        name: "{{ template_name }}"
+        namespace: "{{ namespace }}"
+      register: template_raw
+
+    - name: Fail if template is not found
+      ansible.builtin.fail:
+        msg: "Template '{{ template_name }}' not found in namespace '{{ namespace }}'."
+      when: template_raw.resources | length == 0
+
+    - name: Deploy VirtualMachine from template
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: kubevirt.io/v1
+          kind: VirtualMachine
+          metadata:
+            name: "{{ vm_name }}"
+            namespace: "{{ namespace }}"
+          spec:
+            running: true
+            template:
+              spec:
+                domain:
+                  cpu:
+                    cores: "{{ cpu_cores | int }}"
+                  resources:
+                    requests:
+                      memory: "{{ memory }}"
+                  devices:
+                    disks:
+                      - name: containerdisk
+                        disk:
+                          bus: virtio
+                volumes:
+                  - name: containerdisk
+                    containerDisk:
+                      image: "{{ container_image }}"

@@ -5,7 +5,6 @@
   gather_facts: false
 
   vars:
-    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
     namespace: "rhce-consulting-vms"
     vm_name: "rhel9-vm"
 

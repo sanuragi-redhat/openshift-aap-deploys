@@ -5,9 +5,8 @@
   gather_facts: false
 
   vars:
-    kubeconfig_path: "/root/ocp4/auth/kubeconfig"
     namespace: "rhce-consulting-vms"
-    vm_name: "rhel9-1"
+    vm_name: "01-rhel9-vm"
 
   tasks:
     - name: Ensure required Python packages are installed
